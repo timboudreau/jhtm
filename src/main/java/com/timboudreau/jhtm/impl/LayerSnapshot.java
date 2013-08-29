@@ -1,6 +1,8 @@
 package com.timboudreau.jhtm.impl;
 
 import com.timboudreau.jhtm.Permanence;
+import com.timboudreau.jhtm.topology.Direction;
+import com.timboudreau.jhtm.topology.Path;
 import java.io.Serializable;
 import java.util.BitSet;
 import java.util.Collections;
@@ -12,21 +14,21 @@ import java.util.Objects;
 /**
  * Holds state for the layer, so history can be rolled back and forward
  */
-class LayerSnapshot implements Serializable {
+class LayerSnapshot<Coordinate> implements Serializable {
     public final BitSet activatedCells;
     public final BitSet predictiveCells;
-    public final Map<DendritePath, Map<Integer, Map<Integer, Permanence>>> permanenceForDendritePath = new IdentityHashMap<>();
+    public final Map<Path<Coordinate, ? extends Direction<Coordinate>>, Map<Integer, Map<Integer, Permanence>>> permanenceForDendritePath = new IdentityHashMap<>();
 
     public LayerSnapshot(int totalCells) {
         activatedCells = new BitSet(totalCells);
         predictiveCells = new BitSet(totalCells);
     }
 
-    private LayerSnapshot(LayerSnapshot other) {
+    private LayerSnapshot(LayerSnapshot<Coordinate> other) {
         this.activatedCells = (BitSet) other.activatedCells.clone();
         this.predictiveCells = (BitSet) other.predictiveCells.clone();
         // Do a deep copy, culling empty sets to save space
-        for (Map.Entry<DendritePath, Map<Integer, Map<Integer, Permanence>>> e : other.permanenceForDendritePath.entrySet()) {
+        for (Map.Entry<Path<Coordinate, ? extends Direction<Coordinate>>, Map<Integer, Map<Integer, Permanence>>> e : other.permanenceForDendritePath.entrySet()) {
             Map<Integer, Map<Integer, Permanence>> p4 = e.getValue();
             if (!p4.isEmpty()) {
                 Map<Integer, Map<Integer, Permanence>> n4 = new HashMap<>();
@@ -49,19 +51,19 @@ class LayerSnapshot implements Serializable {
         }
     }
 
-    public PermanenceInfo getPermanences(DendritePath pth) {
+    public PermanenceInfo getPermanences(Path<Coordinate, ? extends Direction<Coordinate>> pth) {
         return new PermanenceInfo(pth);
     }
 
     public LayerSnapshot snapshot() {
         return new LayerSnapshot(this);
     }
-
+    
     class PermanenceInfo {
 
-        private final DendritePath dendritePath;
+        private final Path<Coordinate, ? extends Direction<Coordinate>> dendritePath;
 
-        public PermanenceInfo(DendritePath dendritePath) {
+        public PermanenceInfo(Path<Coordinate, ? extends Direction<Coordinate>> dendritePath) {
             this.dendritePath = dendritePath;
         }
 

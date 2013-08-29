@@ -5,6 +5,8 @@
  */
 package com.timboudreau.jhtm.impl;
 
+import com.timboudreau.jhtm.topology.Coordinate2D;
+import com.timboudreau.jhtm.topology.Topology2D;
 import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.InputBit;
 import com.timboudreau.jhtm.PotentialSynapse;
@@ -30,23 +32,18 @@ public class InputMappingImplTest {
     @Test
     public void testConnector() {
         assertTrue(true);
-        Topology2D topo = new Topology2D(16, 16, new Topology2D.ColumnMapper() {
-            @Override
-            public Coordinate2D coordinatesOf(Column cell) {
-                return ((LayerImpl.CellImpl) cell).coordinate();
-            }
-        });
+        Topology2D topo = new Topology2D(16, 16);
         Random r = new Random(23);
-        LayerImpl layer = new LayerImpl(topo.columnCount(), 4, 24, r, topo, 7);
+        LayerImpl<Coordinate2D> layer = new LayerImpl(topo.columnCount(), 4, 24, r, topo, 7);
         In in = new In(81);
-        InputMappingImpl mapping = new InputMappingImpl(in, new SynapseFactory() {
+        InputMappingImpl<Coordinate2D, Coordinate2D> mapping = new InputMappingImpl<>(in, new SynapseFactory<Coordinate2D, Coordinate2D>() {
 
             @Override
-            public void connect(Layer layer, InputMapping.ProximalDendriteBuilder connector, Input input) {
+            public void connect(Layer<Coordinate2D> layer, InputMapping.ProximalDendriteBuilder<Coordinate2D, Coordinate2D> connector, Input<Coordinate2D> input) {
                 int sz = layer.size();
                 Random r = new Random();
                 int count = 0;
-                for (Column column : layer) {
+                for (Column<Coordinate2D> column : layer) {
                     connector.saveAndNew(column);
                     int bitCount = input.size();
                     for (int j = 0; j < 10; j++) {
@@ -60,8 +57,9 @@ public class InputMappingImplTest {
             }
         }, layer, new Thresholds());
         layer.setInputMapping(mapping);
-
-        for (final Column c : layer) {
+        Iterator<Column<Coordinate2D>> it = layer.iterator();
+        while (it.hasNext()) {
+            final Column<Coordinate2D> c = it.next();
             assertNotNull(c);
             ProximalDendriteSegment seg = c.getProximalSegment();
             assertNotNull("Null segment for " + c, seg);

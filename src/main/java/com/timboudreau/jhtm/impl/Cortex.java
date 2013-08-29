@@ -5,6 +5,7 @@ package com.timboudreau.jhtm.impl;
  * @author Tim Boudreau
  */
 public class Cortex {
+    private final Algorithms algs;
     /*
     Cortex has
      - Layers
@@ -12,7 +13,8 @@ public class Cortex {
      - Output/predictions
     */
     
-    public Cortex() {
+    public Cortex(Algorithms algs) {
+        this.algs = algs;
         
     }
 }

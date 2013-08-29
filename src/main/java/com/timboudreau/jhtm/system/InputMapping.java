@@ -5,7 +5,6 @@ import com.timboudreau.jhtm.InputBit;
 import com.timboudreau.jhtm.ProximalDendriteSegment;
 import com.timboudreau.jhtm.impl.LayerImpl;
 import com.timboudreau.jhtm.util.Visitor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Holds mapping info which maps proximal dendrites between columns and input
@@ -13,14 +12,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Tim Boudreau
  */
-public abstract class InputMapping<T, C extends Column> {
+public abstract class InputMapping<T, Coordinate> {
 
     protected final Input<T> input;
     private volatile boolean initialized;
-    protected final SynapseFactory<T, C> connections;
+    protected final SynapseFactory<T, Coordinate> connections;
     private final Layer layer;
 
-    public InputMapping(Input<T> input, SynapseFactory<T, C> connections, Layer layer) {
+    public InputMapping(Input<T> input, SynapseFactory<T, Coordinate> connections, Layer layer) {
         this.input = input;
         this.connections = connections;
         this.layer = layer;
@@ -35,11 +34,10 @@ public abstract class InputMapping<T, C extends Column> {
     }
 
     protected void init() {
-        ProximalDendriteBuilder<T, C> conn = connector();
+        ProximalDendriteBuilder<T, Coordinate> conn = connector();
         connections.connect(layer, conn, input);
         if (layer instanceof LayerImpl) {
-            InputMapping m = this; //XXX hack
-            ((LayerImpl) layer).setInputMapping(m);
+            ((LayerImpl<Coordinate>) layer).setInputMapping(this);
         }
     }
 
@@ -55,29 +53,29 @@ public abstract class InputMapping<T, C extends Column> {
         return doVisitProximalDendriteSegments(v, arg);
     }
 
-    public ProximalDendriteSegment segmentFor(C column) {
+    public ProximalDendriteSegment segmentFor(Column<Coordinate> column) {
         checkInit();
         return getSegmentFor(column);
     }
 
-    protected abstract ProximalDendriteSegment getSegmentFor(C column);
+    protected abstract ProximalDendriteSegment getSegmentFor(Column<Coordinate> column);
 
-    protected abstract ProximalDendriteBuilder<T, C> connector();
+    protected abstract ProximalDendriteBuilder<T, Coordinate> connector();
 
     protected abstract <R> Visitor.Result doVisitProximalDendriteSegments(Visitor<ProximalDendriteSegment, R> v, R arg);
 
-    public static abstract class SynapseFactory<T, C extends Column> {
+    public static abstract class SynapseFactory<T, Coordinate> {
 
-        public abstract void connect(Layer layer, ProximalDendriteBuilder<T, C> connector, Input<T> input);
+        public abstract void connect(Layer<Coordinate> layer, ProximalDendriteBuilder<T, Coordinate> connector, Input<T> input);
     }
 
-    public interface ProximalDendriteBuilder<T, C extends Column> {
+    public interface ProximalDendriteBuilder<T, Coordinate> {
 
         public ProximalDendriteSegment save();
 
-        public ProximalDendriteSegment saveAndNew(C col);
+        public ProximalDendriteSegment saveAndNew(Column<Coordinate> col);
 
-        public void newDendrite(C column);
+        public void newDendrite(Column<Coordinate> column);
 
         public void add(InputBit<T> bit);
     }

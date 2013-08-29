@@ -4,7 +4,7 @@ package com.timboudreau.jhtm;
  *
  * @author Tim Boudreau
  */
-public abstract class ProximalDendriteSegment<T extends Column> extends DendriteSegment<T, T> {
+public abstract class ProximalDendriteSegment<Coordinate, T> extends DendriteSegment<Column<Coordinate>, InputBit<T>> {
 
     public abstract BoostFactor getBoostFactor();
 

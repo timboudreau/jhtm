@@ -1,6 +1,4 @@
-package com.timboudreau.jhtm.impl;
-
-import com.timboudreau.jhtm.impl.DendritePath.Direction;
+package com.timboudreau.jhtm.topology;
 
 /**
  *
@@ -15,13 +13,7 @@ public class Coordinate2D {
         this.x = x;
         this.y = y;
     }
-
-    public Coordinate2D adjustedBy(Direction direction) {
-        int xx = direction.adjustX(x, Integer.MAX_VALUE);
-        int yy = direction.adjustY(y, Integer.MAX_VALUE);
-        return new Coordinate2D(xx, yy);
-    }
-
+    
     public int x() {
         return x;
     }

@@ -6,11 +6,13 @@ import com.timboudreau.jhtm.util.Visitor;
  *
  * @author Tim Boudreau
  */
-public abstract class Region {
+public abstract class Region<Coordinate> {
 
     public abstract int size();
 
-    public abstract Column get(int ix);
+    public abstract Column<Coordinate> get(int ix);
+    
+    public abstract Column<Coordinate> get(Coordinate coord);
 
     public <R> Visitor.Result visitAllCells(final Visitor<Cell, R> v, R arg) {
         return visitActivatedColumns(new Visitor<Column, R>() {

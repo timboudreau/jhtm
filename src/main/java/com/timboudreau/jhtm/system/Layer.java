@@ -6,7 +6,7 @@ import com.timboudreau.jhtm.Column;
  *
  * @author Tim Boudreau
  */
-public interface Layer extends Iterable<Column> {
+public interface Layer<Coordinate> extends Iterable<Column<Coordinate>> {
     public Column getColumn(int index);
     public int size();
 }

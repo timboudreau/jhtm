@@ -1,5 +1,7 @@
 package com.timboudreau.jhtm.impl;
 
+import com.timboudreau.jhtm.topology.Path2D;
+import com.timboudreau.jhtm.topology.Coordinate2D;
 import com.timboudreau.jhtm.Cell;
 import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.DendriteSegment;
@@ -11,6 +13,11 @@ import com.timboudreau.jhtm.ProximalDendriteSegment;
 import com.timboudreau.jhtm.Region;
 import com.timboudreau.jhtm.system.InputMapping;
 import com.timboudreau.jhtm.system.Layer;
+import com.timboudreau.jhtm.topology.CellLocation;
+import com.timboudreau.jhtm.topology.Direction;
+import com.timboudreau.jhtm.topology.Path;
+import com.timboudreau.jhtm.topology.Topology;
+import com.timboudreau.jhtm.util.Snapshottable;
 import com.timboudreau.jhtm.util.Visitor;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -26,34 +33,45 @@ import java.util.Random;
  *
  * @author Tim Boudreau
  */
-public class LayerImpl implements Layer {
+public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot> {
 
     public final int columnCount;
     public final int cellsPerColumn;
     private final RegionImpl region = new RegionImpl();
-    private final DendritePath[][] paths;
-    private Topology2D topology;
+    private final Path<Coordinate2D, ? extends Direction<Coordinate2D>>[][] paths;
+    private Topology<Coordinate> topology;
     private LayerSnapshot snapshot;
-    private InputMapping<?, ColumnImpl> mapping;
+    private InputMapping<?, Coordinate> mapping;
 
-    public LayerImpl(int columnCount, int cellsPerColumn, int connectionsPerCell, Random random, Topology2D topology, int dendriteLength) {
+    public LayerImpl(int columnCount, int cellsPerColumn, int connectionsPerCell, Random random, Topology<Coordinate> topology, int dendriteLength) {
         this.columnCount = columnCount;
         this.cellsPerColumn = cellsPerColumn;
         this.topology = topology;
         snapshot = new LayerSnapshot(columnCount * cellsPerColumn);
 
         int totalCells = columnCount * cellsPerColumn;
-        paths = new DendritePath[totalCells][cellsPerColumn];
+//        paths = new Path2D[totalCells][cellsPerColumn];
+        paths = (Path<Coordinate2D, ? extends Direction<Coordinate2D>>[][]) topology.pathArray(totalCells, cellsPerColumn);
         for (int i = 0; i < totalCells; i++) {
-            Coordinate2D coord = topology.coordinateForColumnIndex(i);
+            Coordinate coord = topology.coordinateForIndex(i);
             for (int j = 0; j < cellsPerColumn; j++) {
-                paths[i][j] = DendritePath.createRandom(random, coord, topology, dendriteLength);
+                paths[i][j] = (Path2D) topology.createRandom(random, coord, dendriteLength);
             }
         }
     }
 
-    public Iterator<Column> iterator() {
-        return new Iterator<Column>() {
+    public synchronized LayerSnapshot snapshot() {
+        return snapshot.snapshot();
+    }
+
+    public synchronized LayerSnapshot restore(LayerSnapshot snapshot) {
+        LayerSnapshot old = this.snapshot;
+        this.snapshot = snapshot.snapshot();
+        return old;
+    }
+
+    public Iterator<Column<Coordinate>> iterator() {
+        return new Iterator<Column<Coordinate>>() {
             int ix = -1;
 
             @Override
@@ -73,7 +91,7 @@ public class LayerImpl implements Layer {
         };
     }
 
-    public void setInputMapping(InputMapping<?, ColumnImpl> mapping) {
+    public void setInputMapping(InputMapping<?, Coordinate> mapping) {
         this.mapping = mapping;
     }
 
@@ -111,7 +129,7 @@ public class LayerImpl implements Layer {
         return "Layer " + activatedCells().cardinality() + " active " + predictiveCells().cardinality() + " predictive";
     }
 
-    class ColumnImpl implements Column {
+    class ColumnImpl implements Column<Coordinate> {
 
         final int index;
 
@@ -132,6 +150,10 @@ public class LayerImpl implements Layer {
             return l;
         }
 
+        public Coordinate coordinate() {
+            return topology.coordinateForIndex(index);
+        }
+
         @Override
         public Region getRegion() {
             return region;
@@ -146,13 +168,9 @@ public class LayerImpl implements Layer {
             return LayerImpl.this;
         }
 
-        public Coordinate2D getCoordinate() {
-            return topology.coordinateForColumnIndex(index);
-        }
-
         @Override
         public boolean equals(Object o) {
-            boolean result = o instanceof ColumnImpl;
+            boolean result = o != null && o.getClass() == ColumnImpl.class;
             if (result) {
                 result = ((ColumnImpl) o).index == index;
                 if (result) {
@@ -231,7 +249,7 @@ public class LayerImpl implements Layer {
         }
     }
 
-    class CellImpl implements Cell {
+    class CellImpl implements Cell<Coordinate> {
 
         private final int pos;
 
@@ -243,8 +261,8 @@ public class LayerImpl implements Layer {
             return pos / cellsPerColumn;
         }
 
-        Coordinate2D coordinate() {
-            return topology.coordinateForColumnIndex(columnIndex());
+        public CellLocation<Coordinate> coordinate() {
+            return new CellLocation<>(indexInColumn(), topology.coordinateForIndex(columnIndex()));
         }
 
         int index() {
@@ -255,7 +273,7 @@ public class LayerImpl implements Layer {
             return pos % cellsPerColumn;
         }
 
-        DendritePath[] getPaths() {
+        Path<Coordinate2D, ? extends Direction<Coordinate2D>>[] getPaths() {
             return paths[pos];
         }
 
@@ -277,7 +295,7 @@ public class LayerImpl implements Layer {
 
         @Override
         public boolean equals(Object o) {
-            boolean result = o instanceof CellImpl;
+            boolean result = o != null && CellImpl.class == o.getClass();
             if (result) {
                 CellImpl c = (CellImpl) o;
                 result = c.pos == pos && c.layer() == layer();
@@ -292,10 +310,10 @@ public class LayerImpl implements Layer {
 
         @Override
         public <R> Visitor.Result visitDistalConnections(final Visitor<DistalDendriteSegment, R> v, final R outerArg) {
-            DendritePath[] pths = this.getPaths();
+            Path<Coordinate2D, ? extends Direction<Coordinate2D>>[] pths = this.getPaths();
             Visitor.Result result = Visitor.Result.NO_VISITS;
             for (int i = 0; i < pths.length; i++) {
-                final DendritePath p = pths[i];
+                final Path<Coordinate2D, ? extends Direction<Coordinate2D>> p = pths[i];
                 final int ix = i;
                 class Seg extends DistalDendriteSegment {
 
@@ -308,7 +326,7 @@ public class LayerImpl implements Layer {
                         return "Segment for " + p;
                     }
 
-                    private DendritePath path() {
+                    private Path<Coordinate2D, ? extends Direction<Coordinate2D>> path() {
                         return p;
                     }
 
@@ -317,7 +335,7 @@ public class LayerImpl implements Layer {
                     }
 
                     public boolean equals(Object o) {
-                        boolean result = o instanceof Seg;
+                        boolean result = o != null && o.getClass() == Seg.class;
                         if (result) {
                             if (o == this) {
                                 return true;
@@ -332,13 +350,17 @@ public class LayerImpl implements Layer {
 
                     @Override
                     public <J> Visitor.Result visitSynapses(final Visitor<PotentialSynapse<? extends Cell>, J> visitor, final J midArg) {
-                        return topology.walk(coordinate(), p, new Visitor<Coordinate2D, Topology2D>() {
+                        Coordinate coord = topology.coordinateForIndex(columnIndex());
+                        Iterable<? extends Direction<Coordinate>> iter = (Iterable<? extends Direction<Coordinate>>) p; //XXX
+                        return topology.walk(coord, iter, new Visitor<Coordinate, Topology<Coordinate>>() {
 
                             int pathIndex;
 
                             @Override
-                            public Visitor.Result visit(Coordinate2D coordinate, Topology2D topology) {
-                                final ColumnImpl column = LayerImpl.this.getColumn(coordinate.toOffset(topology));
+                            public Visitor.Result visit(Coordinate coordinate, Topology<Coordinate> topology) {
+                                System.out.println("Visit coord " + coordinate);
+                                int offset = topology.toIndex(coordinate);
+                                final ColumnImpl column = LayerImpl.this.getColumn(offset);
                                 Visitor.Result result = Visitor.Result.NO_VISITS;
                                 for (final CellImpl cell : column.getCells()) {
                                     class Syn extends PotentialSynapse<Cell> {
@@ -371,7 +393,7 @@ public class LayerImpl implements Layer {
                                             if (o == this) {
                                                 return true;
                                             }
-                                            boolean result = o instanceof Syn;
+                                            boolean result = o != null && o.getClass() == Syn.class;
                                             if (result) {
                                                 Syn syn = (Syn) o;
                                                 result = syn.getTarget().equals(cell);
@@ -436,7 +458,7 @@ public class LayerImpl implements Layer {
         return new CellImpl(pos);
     }
 
-    private class RegionImpl extends Region {
+    private class RegionImpl extends Region<Coordinate> {
 
         @Override
         public int size() {
@@ -446,6 +468,11 @@ public class LayerImpl implements Layer {
         @Override
         public Column get(int ix) {
             return LayerImpl.this.getColumn(ix);
+        }
+
+        @Override
+        public Column<Coordinate> get(Coordinate coord) {
+            return LayerImpl.this.getColumn(topology.toIndex(coord));
         }
     }
 }
