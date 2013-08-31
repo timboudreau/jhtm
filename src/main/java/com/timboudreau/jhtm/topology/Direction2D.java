@@ -3,6 +3,7 @@ package com.timboudreau.jhtm.topology;
 import java.util.Random;
 
 /**
+ * Directions that can be navigated in 2d
  *
  * @author Tim Boudreau
  */
@@ -12,6 +13,14 @@ public enum Direction2D implements Direction<Coordinate2D> {
 
     public static Direction2D random(Random r) {
         return Direction2D.values()[r.nextInt(Direction2D.values().length)];
+    }
+    
+    public byte toByte() {
+        return (byte) ordinal();
+    }
+    
+    public static Direction2D fromByte(byte b) {
+        return values()[b];
     }
 
     private int adjustX(int x, int maxX) {
@@ -49,6 +58,6 @@ public enum Direction2D implements Direction<Coordinate2D> {
     public Coordinate2D navigate(Coordinate2D extent, Coordinate2D curr, EdgeRule<Coordinate2D> edgeRule) {
         int x = adjustX(curr.x, extent.x() - 1);
         int y = adjustY(curr.y, extent.y() - 1);
-        return edgeRule.adjust(curr, new Coordinate2D(x, y), extent);
+        return edgeRule.adjust(curr, Coordinate2D.valueOf(x, y), extent);
     }
 }

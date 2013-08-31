@@ -1,6 +1,5 @@
 package com.timboudreau.jhtm.impl;
 
-import com.timboudreau.jhtm.topology.Path2D;
 import com.timboudreau.jhtm.topology.Coordinate2D;
 import com.timboudreau.jhtm.Cell;
 import com.timboudreau.jhtm.Column;
@@ -35,28 +34,87 @@ import java.util.Random;
  */
 public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot> {
 
-    public final int columnCount;
-    public final int cellsPerColumn;
+    private final int cellsPerColumn;
     private final RegionImpl region = new RegionImpl();
-    private final Path<Coordinate2D, ? extends Direction<Coordinate2D>>[][] paths;
+    private final Path<Coordinate, ? extends Direction<Coordinate>>[][] paths;
     private Topology<Coordinate> topology;
     private LayerSnapshot snapshot;
     private InputMapping<?, Coordinate> mapping;
 
-    public LayerImpl(int columnCount, int cellsPerColumn, int connectionsPerCell, Random random, Topology<Coordinate> topology, int dendriteLength) {
-        this.columnCount = columnCount;
+    @SuppressWarnings("LeakingThisInConstructor")
+    public LayerImpl(int cellsPerColumn, int distalDendritesPerCell, Topology<Coordinate> topology) {
+        this(cellsPerColumn, distalDendritesPerCell, topology, new RandomDistalLayoutFactory<Coordinate>());
+    }
+
+    public LayerImpl(int cellsPerColumn, int distalDendritesPerCell, Topology<Coordinate> topology, DistalLayoutFactory<Coordinate> layout) {
+        int columnCount = topology.columnCount();
         this.cellsPerColumn = cellsPerColumn;
         this.topology = topology;
-        snapshot = new LayerSnapshot(columnCount * cellsPerColumn);
+        snapshot = new LayerSnapshot(topology.columnCount() * cellsPerColumn);
 
         int totalCells = columnCount * cellsPerColumn;
-//        paths = new Path2D[totalCells][cellsPerColumn];
-        paths = (Path<Coordinate2D, ? extends Direction<Coordinate2D>>[][]) topology.pathArray(totalCells, cellsPerColumn);
-        for (int i = 0; i < totalCells; i++) {
-            Coordinate coord = topology.coordinateForIndex(i);
-            for (int j = 0; j < cellsPerColumn; j++) {
-                paths[i][j] = (Path2D) topology.createRandom(random, coord, dendriteLength);
+        paths = (Path<Coordinate, ? extends Direction<Coordinate>>[][]) topology.pathArray(totalCells, distalDendritesPerCell);
+        layout.createLayout(topology, this, columnCount, cellsPerColumn, distalDendritesPerCell, new DistalDendrites<Coordinate>() {
+
+            @Override
+            public void add(Path<Coordinate, ? extends Direction<Coordinate>> path, int cellIndex, int dendriteIndex) {
+                paths[cellIndex][dendriteIndex] = path;
             }
+        });
+    }
+
+    public LayerImpl(Topology<Coordinate> topology, LayerSnapshot snapshot, InputMapping<?, Coordinate> mapping, int cellsPerColumn, Path<Coordinate, ? extends Direction<Coordinate>>[][] paths) {
+        this.snapshot = snapshot;
+        this.mapping = mapping;
+        this.topology = topology;
+        this.cellsPerColumn = cellsPerColumn;
+        this.paths = paths;
+    }
+
+    public interface DistalDendrites<Coordinate> {
+
+        public void add(Path<Coordinate, ? extends Direction<Coordinate>> path, int cellIndex, int dendriteIndex);
+    }
+
+    public interface DistalLayoutFactory<Coordinate> {
+
+        public void createLayout(Topology<Coordinate> topology, Layer<Coordinate> layer, int columnCount, int cellsPerColumn, int distalDendritesPerCell, DistalDendrites addTo);
+    }
+
+    public static final class RandomDistalLayoutFactory<Coordinate> implements DistalLayoutFactory<Coordinate> {
+
+        private final Random random;
+        private final int dendriteLength;
+        public static final int DEFAULT_DENDRITE_LENGTH = 10;
+
+        public RandomDistalLayoutFactory() {
+            this(DEFAULT_DENDRITE_LENGTH);
+        }
+
+        public RandomDistalLayoutFactory(int dendriteLength) {
+            this(new Random(23), dendriteLength);
+        }
+
+        public RandomDistalLayoutFactory(Random random, int dendriteLength) {
+            this.random = random;
+            this.dendriteLength = dendriteLength;
+        }
+
+        @Override
+        public void createLayout(Topology<Coordinate> topology, Layer<Coordinate> layer, int columnCount, int cellsPerColumn, int distalDendritesPerCell, DistalDendrites addTo) {
+            System.out.println("Creating random layout");
+            int totalCells = columnCount * cellsPerColumn;
+            for (int i = 0; i < totalCells; i++) {
+                if (i % 10000 == 0) {
+                    System.out.println("CELL " + i + " of " + totalCells);
+                }
+                Coordinate coord = topology.coordinateForIndex(i);
+                for (int j = 0; j < distalDendritesPerCell; j++) {
+                    Path<Coordinate, ? extends Direction<Coordinate>> path = topology.createRandom(random, coord, dendriteLength);
+                    addTo.add(path, i, j);
+                }
+            }
+            System.out.println("Done creating random layout");
         }
     }
 
@@ -76,7 +134,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
 
             @Override
             public boolean hasNext() {
-                return ix + 1 < columnCount;
+                return ix + 1 < topology.columnCount();
             }
 
             @Override
@@ -105,7 +163,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
 
     @Override
     public ColumnImpl getColumn(int index) {
-        if (index < columnCount) {
+        if (index < topology.columnCount()) {
             return new ColumnImpl(index);
         }
         return null;
@@ -113,7 +171,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
 
     @Override
     public int size() {
-        return columnCount;
+        return topology.columnCount();
     }
 
     public Region toRegion() {
@@ -121,7 +179,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
     }
 
     public int cellCount() {
-        return columnCount * cellsPerColumn;
+        return topology.columnCount() * cellsPerColumn;
     }
 
     @Override
@@ -274,7 +332,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
         }
 
         Path<Coordinate2D, ? extends Direction<Coordinate2D>>[] getPaths() {
-            return paths[pos];
+            return (Path<Coordinate2D, ? extends Direction<Coordinate2D>>[]) paths[pos];
         }
 
         @Override
@@ -358,7 +416,6 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
 
                             @Override
                             public Visitor.Result visit(Coordinate coordinate, Topology<Coordinate> topology) {
-                                System.out.println("Visit coord " + coordinate);
                                 int offset = topology.toIndex(coordinate);
                                 final ColumnImpl column = LayerImpl.this.getColumn(offset);
                                 Visitor.Result result = Visitor.Result.NO_VISITS;
@@ -371,7 +428,6 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
 
                                         @Override
                                         public Permanence getPermanence() {
-                                            System.out.println("Get permanence for " + pathIndex + ":" + cell.indexInColumn());
                                             return snapshot.getPermanences(p).getPermanence(pathIndex, cell.indexInColumn());
                                         }
 
@@ -426,6 +482,12 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
                                         public DendriteSegment getDendriteSegment() {
                                             return Seg.this;
                                         }
+
+                                        @Override
+                                        public OutputState getTargetState() {
+                                            return cell.state();
+                                        }
+
                                     }
                                     result = visitor.visit(new Syn(), midArg);
                                     if (result.isDone()) {

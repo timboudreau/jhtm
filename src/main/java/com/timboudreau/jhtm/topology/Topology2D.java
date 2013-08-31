@@ -2,9 +2,7 @@ package com.timboudreau.jhtm.topology;
 
 import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.system.Layer;
-import com.timboudreau.jhtm.topology.Topology;
 import com.timboudreau.jhtm.util.Visitor;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -24,7 +22,7 @@ public class Topology2D extends Topology<Coordinate2D> {
     private final EdgeRule<Coordinate2D> edgeRule;
 
     public Topology2D(int widthAndHeight) {
-        this(widthAndHeight, EdgeRule.constrain());
+        this(widthAndHeight, EdgeRule.wrap());
     }
 
     public Topology2D(int widthAndHeight, EdgeRule<Coordinate2D> edgeRule) {
@@ -32,7 +30,7 @@ public class Topology2D extends Topology<Coordinate2D> {
     }
 
     public Topology2D(int width, int height) {
-        this(width, height, EdgeRule.constrain());
+        this(width, height, EdgeRule.wrap());
     }
 
     public Topology2D(int width, int height, EdgeRule<Coordinate2D> edgeRule) {
@@ -43,14 +41,14 @@ public class Topology2D extends Topology<Coordinate2D> {
     }
 
     public Coordinate2D newCoordinate(int x, int y) {
-        return new Coordinate2D(x, y);
+        return Coordinate2D.valueOf(x, y);
     }
 
     @Override
     public Coordinate2D coordinateForIndex(int ix) {
         int y = ix / width;
         int x = ix % width;
-        return new Coordinate2D(x, y);
+        return Coordinate2D.valueOf(x, y);
     }
 
     public int toIndex(Coordinate2D coord) {
@@ -62,10 +60,10 @@ public class Topology2D extends Topology<Coordinate2D> {
     }
 
     public Coordinate2D getExtents() {
-        return new Coordinate2D(width, height);
+        return Coordinate2D.valueOf(width, height);
     }
 
-    public <R> Visitor.Result visitNeighbors(Layer layer, int radius, Visitor<Column, R> v, Column column, R arg) {
+    public <R> Visitor.Result visitNeighbors(Layer<Coordinate2D> layer, int radius, Visitor<Column, R> v, Column column, R arg) {
         Visitor.Result result = Visitor.Result.NO_VISITS;
         Coordinate2D loc = coordinateForIndex(column.index());
         for (int x = loc.x - radius; x < loc.x + radius; x++) {

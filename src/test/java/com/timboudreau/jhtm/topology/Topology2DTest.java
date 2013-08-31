@@ -18,8 +18,8 @@ public class Topology2DTest {
         Topology2D d = new Topology2D(16);
         Path2D p = new Path2D(UP, LEFT, DOWN, RIGHT);
         final List<Coordinate2D> coords = new LinkedList<>();
-        final List<Coordinate2D> expect = new LinkedList<>(Arrays.asList(new Coordinate2D(8,7), new Coordinate2D(7, 7), new Coordinate2D(7, 8), new Coordinate2D(8,8)));
-        d.walk(new Coordinate2D(8, 8), p, new Visitor<Coordinate2D, Topology<Coordinate2D>>(){
+        final List<Coordinate2D> expect = new LinkedList<>(Arrays.asList(Coordinate2D.valueOf(8,7), Coordinate2D.valueOf(7, 7), Coordinate2D.valueOf(7, 8), Coordinate2D.valueOf(8,8)));
+        d.walk(Coordinate2D.valueOf(8, 8), p, new Visitor<Coordinate2D, Topology<Coordinate2D>>(){
             @Override
             public Visitor.Result visit(Coordinate2D obj, Topology<Coordinate2D> arg) {
                 System.out.println("VISIT " + obj);
@@ -33,7 +33,7 @@ public class Topology2DTest {
 
         coords.clear();
         p = new Path2D(DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN);
-        d.walk(new Coordinate2D(8, 8), p, new Visitor<Coordinate2D, Topology<Coordinate2D>>(){
+        d.walk(Coordinate2D.valueOf(8, 8), p, new Visitor<Coordinate2D, Topology<Coordinate2D>>(){
             @Override
             public Visitor.Result visit(Coordinate2D obj, Topology<Coordinate2D> arg) {
                 System.out.println("VISIT " + obj);

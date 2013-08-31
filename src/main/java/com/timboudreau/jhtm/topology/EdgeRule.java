@@ -1,21 +1,44 @@
 package com.timboudreau.jhtm.topology;
 
 /**
+ * What to do with an invalid coordinate - wrap around to the opposite
+ * edge, do nothing, bounce, whatever.
  *
  * @author Tim Boudreau
  */
 public abstract class EdgeRule<Coordinate> {
 
+    /**
+     * A rule which does nothing and allows invalid coordinates
+     * @param <T> The type
+     * @return A rule
+     */
     public static <T> EdgeRule<T> noop() {
         return new Noop<T>();
     }
 
+    /**
+     * Adjust the proposed coordinate to fit within the constraints of the
+     * extents and this rule
+     * @param curr The current location
+     * @param proposed The proposed location
+     * @param extents The maximum location + 1 in all directions
+     * @return A coordinate
+     */
     public abstract Coordinate adjust(Coordinate curr, Coordinate proposed, Coordinate extents);
 
+    /**
+     * A rule which wraps around to the other side
+     * @return A rule
+     */
     public static EdgeRule<Coordinate2D> wrap() {
         return new WrapRule();
     }
 
+    /**
+     * A rule which constrains coordinates to within the extents
+     * @return A rule
+     */
     public static EdgeRule<Coordinate2D> constrain() {
         return new ConstrainRule();
     }
@@ -39,7 +62,7 @@ public abstract class EdgeRule<Coordinate> {
                 y = extents.y - 1;
             }
             if (x != proposed.x || y != proposed.y) {
-                return new Coordinate2D(x, y);
+                return Coordinate2D.valueOf(x, y);
             }
             return proposed;
         }
@@ -71,7 +94,7 @@ public abstract class EdgeRule<Coordinate> {
                 y = 0;
             }
             if (x != proposed.x || y != proposed.y) {
-                return new Coordinate2D(x, y);
+                return Coordinate2D.valueOf(x, y);
             }
             return proposed;
         }

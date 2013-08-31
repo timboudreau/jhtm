@@ -4,10 +4,10 @@ import com.timboudreau.jhtm.BoostFactor;
 import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.DendriteSegment;
 import com.timboudreau.jhtm.InputBit;
+import com.timboudreau.jhtm.OutputState;
 import com.timboudreau.jhtm.Permanence;
 import com.timboudreau.jhtm.PotentialSynapse;
 import com.timboudreau.jhtm.ProximalDendriteSegment;
-import com.timboudreau.jhtm.impl.InputMappingSnapshot;
 import com.timboudreau.jhtm.impl.LayerImpl.ColumnImpl;
 import com.timboudreau.jhtm.system.Input;
 import com.timboudreau.jhtm.system.InputMapping;
@@ -16,7 +16,6 @@ import com.timboudreau.jhtm.system.InputMapping.SynapseFactory;
 import com.timboudreau.jhtm.system.Thresholds;
 import com.timboudreau.jhtm.util.Snapshottable;
 import com.timboudreau.jhtm.util.Visitor;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,6 +29,7 @@ import java.util.Map;
 public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate> implements Snapshottable<InputMappingSnapshot> {
 
     private final Thresholds thresholds;
+    private InputMappingSnapshot snapshot = new InputMappingSnapshot();
 
     public InputMappingImpl(Input<T> input, SynapseFactory<T, Coordinate> connections, LayerImpl layer, Thresholds thresholds) {
         super(input, connections, layer);
@@ -43,8 +43,10 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
             private Column<Coordinate> column;
 
             public synchronized ProximalDendriteImpl save() {
-                assert column != null;
-                ProximalDendriteImpl result = new ProximalDendriteImpl(column, bits, thresholds);
+                ProximalDendriteImpl result = null;
+                if (column != null) {
+                    result = new ProximalDendriteImpl(column, bits, thresholds);
+                }
                 bits.clear();
                 column = null;
                 return result;
@@ -89,8 +91,6 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
     protected ProximalDendriteSegment getSegmentFor(Column<Coordinate> column) {
         return new ProximalDendriteImpl(column.index(), thresholds);
     }
-
-    private InputMappingSnapshot snapshot = new InputMappingSnapshot();
 
     @Override
     public InputMappingSnapshot snapshot() {
@@ -211,6 +211,11 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
                     @Override
                     public InputBit<T> getTarget() {
                         return bit();
+                    }
+
+                    @Override
+                    public OutputState getTargetState() {
+                        return bit().isActive() ? OutputState.ACTIVE : OutputState.INACTIVE;
                     }
 
                 }

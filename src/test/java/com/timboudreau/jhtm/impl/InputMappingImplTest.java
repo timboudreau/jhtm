@@ -34,28 +34,9 @@ public class InputMappingImplTest {
         assertTrue(true);
         Topology2D topo = new Topology2D(16, 16);
         Random r = new Random(23);
-        LayerImpl<Coordinate2D> layer = new LayerImpl(topo.columnCount(), 4, 24, r, topo, 7);
+        LayerImpl<Coordinate2D> layer = new LayerImpl(4, 24, topo);
         In in = new In(81);
-        InputMappingImpl<Coordinate2D, Coordinate2D> mapping = new InputMappingImpl<>(in, new SynapseFactory<Coordinate2D, Coordinate2D>() {
-
-            @Override
-            public void connect(Layer<Coordinate2D> layer, InputMapping.ProximalDendriteBuilder<Coordinate2D, Coordinate2D> connector, Input<Coordinate2D> input) {
-                int sz = layer.size();
-                Random r = new Random();
-                int count = 0;
-                for (Column<Coordinate2D> column : layer) {
-                    connector.saveAndNew(column);
-                    int bitCount = input.size();
-                    for (int j = 0; j < 10; j++) {
-                        int bit = r.nextInt(bitCount);
-                        connector.add(input.get(bit));
-                    }
-                    count++;
-                }
-                connector.save();
-                assertEquals("Iterated column count differs from reported size", count, sz);
-            }
-        }, layer, new Thresholds());
+        InputMappingImpl<Coordinate2D, Coordinate2D> mapping = new InputMappingImpl<>(in, new RandomSynapseFactory(23), layer, new Thresholds());
         layer.setInputMapping(mapping);
         Iterator<Column<Coordinate2D>> it = layer.iterator();
         while (it.hasNext()) {
@@ -112,7 +93,7 @@ public class InputMappingImplTest {
                 public Coordinate2D getID() {
                     int y = i / rowSize;
                     int x = i % rowSize;
-                    return new Coordinate2D(x, y);
+                    return Coordinate2D.valueOf(x, y);
                 }
 
                 @Override

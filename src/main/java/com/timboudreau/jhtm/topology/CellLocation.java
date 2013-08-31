@@ -1,6 +1,8 @@
 package com.timboudreau.jhtm.topology;
 
 /**
+ * The location of a cell, incorporating its column's coordinate and
+ * the index of it within the column.
  *
  * @author Tim Boudreau
  */

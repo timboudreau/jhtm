@@ -15,6 +15,8 @@ public abstract class PotentialSynapse<Target> {
     public abstract Permanence adjustPermanence(double amount, boolean temporary);
 
     public abstract DendriteSegment getDendriteSegment();
+    
+    public abstract OutputState getTargetState();
 
     public Permanence retainTemporaryValues() {
         Permanence old = getPermanence();

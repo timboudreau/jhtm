@@ -17,23 +17,30 @@ import java.util.ListIterator;
  */
 public class Path2D implements Path<Coordinate2D, Direction2D> {
 
-    private final List<Direction2D> directions = new ArrayList<>();
+    private final byte[] directions;
 
     public Path2D() {
-
+        this.directions = new byte[0];
     }
 
-    Path2D(Collection<Direction2D> directions) {
-        this.directions.addAll(directions);
+    Path2D(List<Direction2D> directions) {
+        this.directions = new byte[directions.size()];
+        for (int i = 0; i < this.directions.length; i++) {
+            this.directions[i] = directions.get(i).toByte();
+        }
     }
 
     Path2D(Direction2D... directions) {
         this(Arrays.asList(directions));
     }
 
+    Path2D(byte[] bytes) {
+        this.directions = bytes.clone();
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Direction2D d : directions) {
+        for (Direction2D d : directions()) {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
@@ -44,18 +51,18 @@ public class Path2D implements Path<Coordinate2D, Direction2D> {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Path2D && ((Path2D) o).directions.equals(directions);
+        return o instanceof Path2D && Arrays.equals(((Path2D) o).directions, directions);
     }
 
     @Override
     public int hashCode() {
-        return directions.hashCode();
+        return Arrays.hashCode(directions);
     }
 
     public String toString(Coordinate2D start) {
         StringBuilder sb = new StringBuilder(start + "");
         Iterator<Direction2D> it = iterator();
-        for (Coordinate2D c : coordinates(start, new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE), EdgeRule.<Coordinate2D> noop())) {
+        for (Coordinate2D c : coordinates(start, Coordinate2D.valueOf(Integer.MAX_VALUE, Integer.MAX_VALUE), EdgeRule.<Coordinate2D>noop())) {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
@@ -64,23 +71,37 @@ public class Path2D implements Path<Coordinate2D, Direction2D> {
         return sb.toString();
     }
 
+    public List<Direction2D> directions() {
+        List<Direction2D> result = new ArrayList<>(directions.length);
+        for (int i = 0; i < directions.length; i++) {
+            result.add(Direction2D.fromByte(directions[i]));
+        }
+        return result;
+    }
+
+    public int length() {
+        return directions.length;
+    }
+
     public Path2D add(Direction2D direction) {
-        List<Direction2D> directions = new LinkedList<>(this.directions);
-        directions.add(direction);
-        return new Path2D(directions);
+        byte[] b = new byte[length() + 1];
+        System.arraycopy(directions, 0, b, 0, directions.length);
+        b[b.length - 1] = direction.toByte();
+        return new Path2D(b);
     }
 
     @Override
     public ListIterator<Direction2D> iterator() {
-        return Collections.unmodifiableList(directions).listIterator();
+        return directions().listIterator();
     }
 
     @Override
     public Iterable<Coordinate2D> coordinates(Coordinate2D start, Coordinate2D extents, EdgeRule<Coordinate2D> edgeRule) {
         return new Iter(start, extents, edgeRule);
     }
-    
+
     private class Iter implements Iterator<Coordinate2D>, Iterable<Coordinate2D> {
+
         private final Iterator<Direction2D> iter = Path2D.this.iterator();
         private Coordinate2D last;
         private final Coordinate2D extents;
