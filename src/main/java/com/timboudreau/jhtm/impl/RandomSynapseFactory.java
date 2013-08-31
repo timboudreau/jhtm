@@ -14,7 +14,7 @@ import java.util.Random;
  *
  * @author Tim Boudreau
  */
-public class RandomSynapseFactory<T, Coordinate> extends SynapseFactory<T, Coordinate> {
+public class RandomSynapseFactory<T, Coordinate> implements SynapseFactory<T, Coordinate> {
 
     private final Random random;
     private final int synapsesPerDendrite;

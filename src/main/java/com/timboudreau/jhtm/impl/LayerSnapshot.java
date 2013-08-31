@@ -3,6 +3,7 @@ package com.timboudreau.jhtm.impl;
 import com.timboudreau.jhtm.Permanence;
 import com.timboudreau.jhtm.topology.Direction;
 import com.timboudreau.jhtm.topology.Path;
+import com.timboudreau.jhtm.util.Bits;
 import java.io.Serializable;
 import java.util.BitSet;
 import java.util.Collections;
@@ -15,18 +16,18 @@ import java.util.Objects;
  * Holds state for the layer, so history can be rolled back and forward
  */
 class LayerSnapshot<Coordinate> implements Serializable {
-    public final BitSet activatedCells;
-    public final BitSet predictiveCells;
+    public final Bits activatedCells;
+    public final Bits predictiveCells;
     public final Map<Path<Coordinate, ? extends Direction<Coordinate>>, Map<Integer, Map<Integer, Permanence>>> permanenceForDendritePath = new IdentityHashMap<>();
 
-    public LayerSnapshot(int totalCells) {
-        activatedCells = new BitSet(totalCells);
-        predictiveCells = new BitSet(totalCells);
+    LayerSnapshot(int totalCells) {
+        activatedCells = Bits.create(totalCells);
+        predictiveCells = Bits.create(totalCells);
     }
 
     private LayerSnapshot(LayerSnapshot<Coordinate> other) {
-        this.activatedCells = (BitSet) other.activatedCells.clone();
-        this.predictiveCells = (BitSet) other.predictiveCells.clone();
+        this.activatedCells = other.activatedCells.clone();
+        this.predictiveCells = other.predictiveCells.clone();
         // Do a deep copy, culling empty sets to save space
         for (Map.Entry<Path<Coordinate, ? extends Direction<Coordinate>>, Map<Integer, Map<Integer, Permanence>>> e : other.permanenceForDendritePath.entrySet()) {
             Map<Integer, Map<Integer, Permanence>> p4 = e.getValue();
@@ -63,7 +64,7 @@ class LayerSnapshot<Coordinate> implements Serializable {
 
         private final Path<Coordinate, ? extends Direction<Coordinate>> dendritePath;
 
-        public PermanenceInfo(Path<Coordinate, ? extends Direction<Coordinate>> dendritePath) {
+        PermanenceInfo(Path<Coordinate, ? extends Direction<Coordinate>> dendritePath) {
             this.dendritePath = dendritePath;
         }
 
@@ -157,10 +158,7 @@ class LayerSnapshot<Coordinate> implements Serializable {
         if (!Objects.equals(this.predictiveCells, other.predictiveCells)) {
             return false;
         }
-        if (!Objects.equals(this.permanenceForDendritePath, other.permanenceForDendritePath)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.permanenceForDendritePath, other.permanenceForDendritePath);
     }
 
 }

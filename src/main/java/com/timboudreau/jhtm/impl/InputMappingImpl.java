@@ -8,7 +8,7 @@ import com.timboudreau.jhtm.OutputState;
 import com.timboudreau.jhtm.Permanence;
 import com.timboudreau.jhtm.PotentialSynapse;
 import com.timboudreau.jhtm.ProximalDendriteSegment;
-import com.timboudreau.jhtm.impl.LayerImpl.ColumnImpl;
+import com.timboudreau.jhtm.impl.ColumnImpl;
 import com.timboudreau.jhtm.system.Input;
 import com.timboudreau.jhtm.system.InputMapping;
 import com.timboudreau.jhtm.system.InputMapping.ProximalDendriteBuilder;
@@ -112,11 +112,11 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
 
         private final int column;
 
-        public ProximalDendriteImpl(int column, Thresholds tolerances) {
+        ProximalDendriteImpl(int column, Thresholds tolerances) {
             this.column = column;
         }
 
-        public ProximalDendriteImpl(Column<Coordinate> column, List<InputBit<T>> l, Thresholds tolerances) {
+        ProximalDendriteImpl(Column<Coordinate> column, List<InputBit<T>> l, Thresholds tolerances) {
             this.column = column.index();
             InputMappingSnapshot snap = currentSnapshot();
             Map<Integer, Permanence> permanenceForBit = new HashMap<>();
@@ -157,7 +157,7 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
 
         @Override
         public Column<Coordinate> getSource() {
-            return (ColumnImpl) layer().getColumn(column);
+            return layer().getColumn(column);
         }
 
         @Override
@@ -191,7 +191,7 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
                     }
 
                     InputBit<T> bit() {
-                        return (InputBit<T>) input.get(e.getKey());
+                        return input.get(e.getKey());
                     }
 
                     @Override

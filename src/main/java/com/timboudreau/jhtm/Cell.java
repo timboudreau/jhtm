@@ -12,4 +12,5 @@ public interface Cell<Coordinate> {
     <R> Visitor.Result visitDistalConnections(Visitor<DistalDendriteSegment, R> v, R arg);
     ProximalDendriteSegment getProximalSegment();
     CellLocation<Coordinate> coordinate();
+    int index();
 }

@@ -5,7 +5,7 @@ import com.timboudreau.jhtm.topology.Topology2D;
 import com.timboudreau.jhtm.Cell;
 import com.timboudreau.jhtm.DistalDendriteSegment;
 import com.timboudreau.jhtm.PotentialSynapse;
-import com.timboudreau.jhtm.impl.LayerImpl.CellImpl;
+import com.timboudreau.jhtm.impl.CellImpl;
 import com.timboudreau.jhtm.topology.Direction;
 import com.timboudreau.jhtm.topology.Path;
 import com.timboudreau.jhtm.util.Visitor;
@@ -53,7 +53,8 @@ public class LayerImplTest {
         t.setPriority(Thread.MIN_PRIORITY);
         t.start();
 
-        for (int i = 0; i < layer.cellCount(); i++) {
+        int count = layer.cellCount();
+        for (int i = 0; i < count; i++) {
             CellImpl cell = layer.getCell(i);
             assertNotNull("" + i, cell);
             assertFalse("Saw " + i + " twice", cells.contains(cell));

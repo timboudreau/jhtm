@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public abstract class Topology<Coordinate> {
 
-    private Class<? extends Path<Coordinate, ? extends Direction<Coordinate>>> pathType;
+    private final Class<? extends Path<Coordinate, ? extends Direction<Coordinate>>> pathType;
 
     /**
      * Create a new topology.

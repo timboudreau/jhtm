@@ -14,7 +14,7 @@ public abstract class EdgeRule<Coordinate> {
      * @return A rule
      */
     public static <T> EdgeRule<T> noop() {
-        return new Noop<T>();
+        return new Noop<>();
     }
 
     /**

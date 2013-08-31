@@ -37,7 +37,7 @@ public class Algorithms {
         private final Class<T> type;
         private final T impl;
 
-        public Entry(Class<T> type, T impl) {
+        Entry(Class<T> type, T impl) {
             this.type = type;
             this.impl = impl;
         }

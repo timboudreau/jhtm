@@ -23,23 +23,22 @@ public enum Direction2D implements Direction<Coordinate2D> {
         return values()[b];
     }
 
-    private int adjustX(int x, int maxX) {
+    private int adjustX(int x) {
         switch (this) {
             case LEFT:
             case UP_LEFT:
             case DOWN_LEFT:
-                return Math.min(maxX, Math.max(x - 1, 0));
+                return x - 1;
             case RIGHT:
             case UP_RIGHT:
             case DOWN_RIGHT:
-                return Math.min(maxX, Math.max(x + 1, 0));
+                return x + 1;
             default:
                 return x;
         }
     }
 
-    private int adjustY(int y, int maxY) {
-        assert maxY > 0;
+    private int adjustY(int y) {
         switch (this) {
             case UP:
             case UP_RIGHT:
@@ -56,8 +55,8 @@ public enum Direction2D implements Direction<Coordinate2D> {
 
     @Override
     public Coordinate2D navigate(Coordinate2D extent, Coordinate2D curr, EdgeRule<Coordinate2D> edgeRule) {
-        int x = adjustX(curr.x, extent.x() - 1);
-        int y = adjustY(curr.y, extent.y() - 1);
+        int x = adjustX(curr.x);
+        int y = adjustY(curr.y);
         return edgeRule.adjust(curr, Coordinate2D.valueOf(x, y), extent);
     }
 }

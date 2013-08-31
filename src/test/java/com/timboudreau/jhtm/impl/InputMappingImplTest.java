@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.timboudreau.jhtm.impl;
 
 import com.timboudreau.jhtm.topology.Coordinate2D;
@@ -11,11 +6,7 @@ import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.InputBit;
 import com.timboudreau.jhtm.PotentialSynapse;
 import com.timboudreau.jhtm.ProximalDendriteSegment;
-import com.timboudreau.jhtm.impl.LayerImpl.ColumnImpl;
 import com.timboudreau.jhtm.system.Input;
-import com.timboudreau.jhtm.system.InputMapping;
-import com.timboudreau.jhtm.system.InputMapping.SynapseFactory;
-import com.timboudreau.jhtm.system.Layer;
 import com.timboudreau.jhtm.system.Thresholds;
 import com.timboudreau.jhtm.util.Visitor;
 import java.util.Iterator;

@@ -64,7 +64,7 @@ public abstract class InputMapping<T, Coordinate> {
 
     protected abstract <R> Visitor.Result doVisitProximalDendriteSegments(Visitor<ProximalDendriteSegment, R> v, R arg);
 
-    public static abstract class SynapseFactory<T, Coordinate> {
+    public static interface SynapseFactory<T, Coordinate> {
 
         public abstract void connect(Layer<Coordinate> layer, ProximalDendriteBuilder<T, Coordinate> connector, Input<T> input);
     }

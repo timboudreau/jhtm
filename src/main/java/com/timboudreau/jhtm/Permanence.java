@@ -1,5 +1,8 @@
 package com.timboudreau.jhtm;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.System.identityHashCode;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,7 +75,7 @@ public abstract class Permanence extends Number {
 
     @Override
     public int hashCode() {
-        return System.identityHashCode(this);
+        return identityHashCode(this);
     }
 
     public static interface LimitFunction {
@@ -80,7 +83,7 @@ public abstract class Permanence extends Number {
         public static final LimitFunction ZERO_TO_ONE = new LimitFunction() {
 
             public double limit(double value) {
-                return Math.min(1.0D, Math.max(0D, value));
+                return min(1.0D, max(0D, value));
             }
 
         };
@@ -90,7 +93,7 @@ public abstract class Permanence extends Number {
 
     private static class CompoundPermanence extends Permanence {
 
-        private final List<Value> values = new LinkedList<Value>();
+        private final List<Value> values = new LinkedList<>();
 
         CompoundPermanence(Value a, Value b) {
             values.add(a);
@@ -143,7 +146,7 @@ public abstract class Permanence extends Number {
         final double val;
         final boolean temporary;
 
-        public Value(double val, boolean temporary) {
+        Value(double val, boolean temporary) {
             this.val = val;
             this.temporary = temporary;
         }

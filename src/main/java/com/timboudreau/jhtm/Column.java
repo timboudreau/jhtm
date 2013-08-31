@@ -6,7 +6,7 @@ import com.timboudreau.jhtm.util.Visitor;
  *
  * @author Tim Boudreau
  */
-public interface Column<Coordinate> {
+public interface Column<Coordinate> extends Iterable<Cell<Coordinate>> {
 
     Region getRegion();
 

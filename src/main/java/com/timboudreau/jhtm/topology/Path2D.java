@@ -2,10 +2,7 @@ package com.timboudreau.jhtm.topology;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -31,7 +28,10 @@ public class Path2D implements Path<Coordinate2D, Direction2D> {
     }
 
     Path2D(Direction2D... directions) {
-        this(Arrays.asList(directions));
+        this.directions = new byte[directions.length];
+        for (int i = 0; i < directions.length; i++) {
+            this.directions[i] = directions[i].toByte();
+        }
     }
 
     Path2D(byte[] bytes) {
@@ -107,7 +107,7 @@ public class Path2D implements Path<Coordinate2D, Direction2D> {
         private final Coordinate2D extents;
         private final EdgeRule<Coordinate2D> edgeRule;
 
-        public Iter(Coordinate2D last, Coordinate2D extents, EdgeRule<Coordinate2D> edgeRule) {
+        Iter(Coordinate2D last, Coordinate2D extents, EdgeRule<Coordinate2D> edgeRule) {
             this.last = last;
             this.extents = extents;
             this.edgeRule = edgeRule;

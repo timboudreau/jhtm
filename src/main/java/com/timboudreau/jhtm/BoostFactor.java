@@ -1,6 +1,7 @@
 package com.timboudreau.jhtm;
 
 import java.io.Serializable;
+import static java.lang.Math.min;
 
 /**
  *
@@ -24,7 +25,7 @@ public final class BoostFactor implements Serializable {
     }
 
     public BoostFactor decrease(double by) {
-        return new BoostFactor(Math.min(1.0D, multiplier - by));
+        return new BoostFactor(min(1.0D, multiplier - by));
     }
 
     public double boost(double input) {
