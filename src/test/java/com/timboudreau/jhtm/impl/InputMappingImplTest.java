@@ -22,7 +22,6 @@ public class InputMappingImplTest {
 
     @Test
     public void testConnector() {
-        assertTrue(true);
         Topology2D topo = new Topology2D(16, 16);
         Random r = new Random(23);
         LayerImpl<Coordinate2D> layer = new LayerImpl(4, 24, topo);
