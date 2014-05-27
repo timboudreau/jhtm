@@ -93,20 +93,21 @@ public abstract class Permanence extends Number {
 
     private static class CompoundPermanence extends Permanence {
 
-        private final List<Value> values = new LinkedList<>();
-
+        private final Value a;
+        private final Value b;
         CompoundPermanence(Value a, Value b) {
-            values.add(a);
-            values.add(b);
+            this.a = a;
+            this.b = b;
         }
 
         @Override
         public Permanence cullTemporaryValues() {
             double result = 0D;
-            for (Value v : values) {
-                if (!v.temporary) {
-                    result += v.val;
-                }
+            if (!a.temporary) {
+                result+=a.val;
+            }
+            if (!b.temporary) {
+                result+=b.val;
             }
             return new SimplePermanence(result);
         }
@@ -118,11 +119,7 @@ public abstract class Permanence extends Number {
 
         @Override
         public double get() {
-            double result = 0D;
-            for (Value v : values) {
-                result += v.val;
-            }
-            return result;
+            return a.val + b.val;
         }
 
     }

@@ -140,6 +140,25 @@ class ColumnImpl<Coordinate> implements Column<Coordinate> {
 
     @Override
     public Iterator<Cell<Coordinate>> iterator() {
-        return getCells().iterator();
+//        return getCells().iterator();
+        return new Iter();
+    }
+
+    class Iter implements Iterator<Cell<Coordinate>> {
+        int pos = index * outer.cellsPerColumn;
+        final int max = pos + outer.cellsPerColumn;
+
+        @Override
+        public boolean hasNext() {
+            return pos < max;
+        }
+
+        @Override
+        public Cell<Coordinate> next() {
+            Cell<Coordinate> result = outer.getCell(pos);
+            pos++;
+            return result;
+        }
+
     }
 }
