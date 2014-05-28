@@ -35,6 +35,7 @@ public abstract class InputMapping<T, Coordinate> {
 
     protected void init() {
         ProximalDendriteBuilder<T, Coordinate> conn = connector();
+        System.out.println("InputMapping init " + this);
         connections.connect(layer, conn, input);
         if (layer instanceof LayerImpl) {
             ((LayerImpl<Coordinate>) layer).setInputMapping(this);

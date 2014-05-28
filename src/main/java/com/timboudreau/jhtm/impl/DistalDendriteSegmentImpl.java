@@ -62,23 +62,37 @@ class DistalDendriteSegmentImpl<Coordinate> extends DistalDendriteSegment<Coordi
     @Override
     public <J> Visitor.Result visitSynapses(final Visitor<PotentialSynapse<? extends Cell<Coordinate>>, J> visitor, final J midArg) {
         Coordinate coord = cell.layer.topology.coordinateForIndex(cell.columnIndex());
-        return cell.layer.topology.walk(coord, path, new Visitor<Coordinate, Topology<Coordinate>>() {
-            int pathIndex;
+        return cell.layer.topology.walk(coord, path, new SynapseOuterVisitor<J, Coordinate>(visitor, midArg, this));
+    }
 
-            @Override
-            public Visitor.Result visit(Coordinate coordinate, Topology<Coordinate> topology) {
-                int offset = topology.toIndex(coordinate);
-                final Column<Coordinate> column = cell.layer.getColumn(offset);
-                Visitor.Result result = Visitor.Result.NO_VISITS;
-                for (final Cell<Coordinate> cell : column) {
-                    result = visitor.visit(new DistalPotentialSynapse(pathIndex, DistalDendriteSegmentImpl.this, (CellImpl<Coordinate>) cell), midArg);
-                    if (result.isDone()) {
-                        break;
-                    }
+    private static class SynapseOuterVisitor<J, Coordinate> extends Visitor<Coordinate, Topology<Coordinate>> {
+
+        private final Visitor<PotentialSynapse<? extends Cell<Coordinate>>, J> visitor;
+        private final J midArg;
+        private final DistalDendriteSegmentImpl impl;
+
+        public SynapseOuterVisitor(Visitor<PotentialSynapse<? extends Cell<Coordinate>>, J> visitor, J midArg, DistalDendriteSegmentImpl<Coordinate> impl) {
+            this.visitor = visitor;
+            this.midArg = midArg;
+            this.impl = impl;
+        }
+        private int pathIndex;
+
+        @Override
+        public Visitor.Result visit(Coordinate coordinate, Topology<Coordinate> topology) {
+            int offset = topology.toIndex(coordinate);
+            final Column<Coordinate> column = impl.cell.layer.getColumn(offset);
+//            System.out.println("DistalDendriteSegmentImpl visit " + coordinate + " in " + column);
+            Visitor.Result result = Visitor.Result.NO_VISITS;
+            for (final Cell<Coordinate> cell : column) {
+//                System.out.println("Visit one cell " + cell.coordinate());
+                result = visitor.visit(new DistalPotentialSynapse(pathIndex, impl, (CellImpl<Coordinate>) cell), midArg);
+                if (result.isDone()) {
+                    break;
                 }
-                pathIndex++;
-                return result;
             }
-        });
+            pathIndex++;
+            return result;
+        }
     }
 }

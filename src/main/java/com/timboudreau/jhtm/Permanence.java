@@ -121,6 +121,10 @@ public abstract class Permanence extends Number {
         public double get() {
             return a.val + b.val;
         }
+        
+        public String toString() {
+            return Double.toString(get()) + " (" + a + ", " + b + ")";
+        }
 
     }
 
@@ -135,6 +139,10 @@ public abstract class Permanence extends Number {
         @Override
         public double get() {
             return value;
+        }
+
+        public String toString() {
+            return Double.toString(value);
         }
     }
 

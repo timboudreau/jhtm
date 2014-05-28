@@ -2,6 +2,7 @@ package com.timboudreau.jhtm.impl;
 
 import com.timboudreau.jhtm.Column;
 import com.timboudreau.jhtm.InputBit;
+import com.timboudreau.jhtm.ProximalDendriteSegment;
 import com.timboudreau.jhtm.system.Input;
 import com.timboudreau.jhtm.system.InputMapping;
 import com.timboudreau.jhtm.system.InputMapping.SynapseFactory;
@@ -50,7 +51,7 @@ public class RandomSynapseFactory<T, Coordinate> implements SynapseFactory<T, Co
                 connector.add(bit);
                 usedBits.remove(Integer.valueOf(ix)); // Integer.valueOf to remove by value, not by index
             }
-            connector.save();
+            ProximalDendriteSegment d = connector.save();
         }
     }
 }

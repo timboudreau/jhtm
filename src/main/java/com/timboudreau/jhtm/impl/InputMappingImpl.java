@@ -34,6 +34,7 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
     public InputMappingImpl(Input<T> input, SynapseFactory<T, Coordinate> connections, LayerImpl layer, Thresholds thresholds) {
         super(input, connections, layer);
         this.thresholds = thresholds;
+        init();
     }
 
     @Override
@@ -63,8 +64,9 @@ public class InputMappingImpl<T, Coordinate> extends InputMapping<T, Coordinate>
 
             @Override
             public synchronized void newDendrite(Column<Coordinate> col) {
-                this.column = column;
+                this.column = col;
                 save();
+                this.column = col;
             }
 
             @Override

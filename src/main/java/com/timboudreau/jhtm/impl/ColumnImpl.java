@@ -140,7 +140,6 @@ class ColumnImpl<Coordinate> implements Column<Coordinate> {
 
     @Override
     public Iterator<Cell<Coordinate>> iterator() {
-//        return getCells().iterator();
         return new Iter();
     }
 

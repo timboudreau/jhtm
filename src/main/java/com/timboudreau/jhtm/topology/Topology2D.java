@@ -12,7 +12,8 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- *
+ * Represents a 2-dimensional square topology
+ * 
  * @author Tim Boudreau
  */
 public class Topology2D extends Topology<Coordinate2D> {

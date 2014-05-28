@@ -70,7 +70,7 @@ public abstract class Bits implements Serializable {
     }
     
     public static Bits create(int size) {
-        return new IntSetBits(size);
+        return new MetaBits(new IntSetBits(size));
     }
 
     static class MetaBits extends WrapperBits {
