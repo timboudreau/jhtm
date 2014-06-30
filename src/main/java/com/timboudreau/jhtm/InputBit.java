@@ -15,12 +15,12 @@ public abstract class InputBit<T> {
         }
         return false;
     }
-    
+
     @Override
     public final int hashCode() {
         return getID().hashCode();
     }
-    
+
     @Override
     public String toString() {
         return (isActive() ? "active" : "inactive") + ":" + getID();

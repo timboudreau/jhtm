@@ -117,24 +117,7 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
     }
 
     public Iterator<Column<Coordinate>> iterator() {
-        return new Iterator<Column<Coordinate>>() {
-            int ix = -1;
-
-            @Override
-            public boolean hasNext() {
-                return ix + 1 < topology.columnCount();
-            }
-
-            @Override
-            public Column next() {
-                return getColumn(++ix);
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return new ColumnIterator();
     }
 
     public void setInputMapping(InputMapping<?, Coordinate> mapping) {
@@ -194,6 +177,26 @@ public class LayerImpl<Coordinate> implements Layer, Snapshottable<LayerSnapshot
         @Override
         public Column<Coordinate> get(Coordinate coord) {
             return LayerImpl.this.getColumn(topology.toIndex(coord));
+        }
+    }
+
+    private class ColumnIterator implements Iterator<Column<Coordinate>> {
+
+        int ix = -1;
+
+        @Override
+        public boolean hasNext() {
+            return ix + 1 < topology.columnCount();
+        }
+
+        @Override
+        public Column next() {
+            return getColumn(++ix);
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 }
